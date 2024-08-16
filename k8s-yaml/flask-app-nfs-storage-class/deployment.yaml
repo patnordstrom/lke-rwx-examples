@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: flask-file-app
+  name: flask-file-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: flask-file-app
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: flask-file-app
+    spec:
+      containers:
+      - image: pnordstrom/flask-file-app:1.0
+        name: flask-file-app
+        resources: {}
+        ports:
+        - name: flask-app-port
+          containerPort: 8080
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /flask-app/uploads
+          name: file-uploads
+        env:
+        - name: FLASK_INSTANCE
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: flask-file-app
+              topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: file-uploads
+        persistentVolumeClaim:
+          claimName: nfs-rwx
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-rwx
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: nfs-client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask-app-service
+  labels:
+    app: flask-file-app
+spec:
+  type: LoadBalancer
+  ports:
+  - name: nodebalancer-to-flask-app
+    port: 80
+    targetPort: flask-app-port
+    protocol: TCP
+  selector:
+    app: flask-file-app

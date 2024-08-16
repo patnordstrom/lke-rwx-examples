@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>File Uploader</title>
+</head>
+<h1>Hello from app instance <em>{{ flask_instance }}</em></h1>
+<h2>Select file to upload or browse <a href="/uploads">uploaded files</a></h2>
+<p>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+<ul class=flashes>
+  {% for message in messages %}
+  <li>{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+</p>
+<form method="post" action="/" enctype="multipart/form-data">
+  <dl>
+    <p>
+      <input type="file" name="file" autocomplete="off" required>
+    </p>
+  </dl>
+  <p>
+    <input type="submit" value="Submit">
+  </p>
+</form>
+
+</html>

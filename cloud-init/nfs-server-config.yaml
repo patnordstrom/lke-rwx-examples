@@ -1,0 +1,23 @@
+#cloud-config
+
+# Execute System Updates
+package_update: true
+package_upgrade: true
+
+# Install required packages
+packages:
+  - nfs-kernel-server
+
+# Configure NFS Server
+runcmd:
+  - |
+    mkdir -p /nfs/lke
+    chown nobody:nogroup /nfs/lke
+    chmod 777 /nfs/lke
+
+    cat > /etc/exports <<EOF
+    /nfs/lke 192.168.128.0/17(rw,sync,no_subtree_check)
+    EOF
+
+    exportfs -a
+    systemctl restart nfs-kernel-server
